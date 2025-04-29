@@ -1,0 +1,6 @@
+fastapi==0.115.12
+uvicorn[standard]==0.34.2
+PyP100==0.1.2
+requests==2.32.3
+python-dotenv==1.1.0
+
