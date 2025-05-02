@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block title %}Tapo 대시보드{% endblock %}
+
+{% block content %}
+<style>
+  /* 테이블 기본 스타일 */
+  #plugTable {
+    width: 100%;
+  }
+  
+  /* 버튼 컨테이너 스타일 - Flex로 배치 */
+  .buttons-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+  }
+  
+  /* 버튼 스타일 */
+  .button-on, .button-off {
+    flex: 1;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border-radius: 0.25rem;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  
+  .button-on {
+    background-color: #28a745;
+    color: white;
+  }
+  
+  .button-off {
+    background-color: #dc3545;
+    color: white;
+  }
+  
+  .button-on:disabled, .button-off:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  /* 테이블 간격 조정 */
+  #plugTable th, 
+  #plugTable td {
+    vertical-align: middle;
+    padding: 0.75rem;
+  }
+</style>
+
+<nav class="navbar navbar-light bg-light shadow-sm mb-4">
+  <span class="navbar-brand ms-3 fw-semibold">Tapo Plug Dashboard</span>
+  <button id="logoutBtn" class="btn btn-outline-secondary me-3 btn-sm">
+    로그아웃
+  </button>
+</nav>
+
+<div id="plugAlert" class="alert alert-danger d-none" role="alert"></div>
+
+<div class="table-responsive">
+  <table class="table table-hover align-middle shadow-sm" id="plugTable">
+    <thead class="table-light">
+      <tr>
+        <th style="width:30%">이름</th>
+        <th class="text-center" style="width:35%">상태</th>
+        <th style="width:35%">내 동작</th>
+      </tr>
+    </thead>
+    <tbody id="plugTableBody"></tbody>
+  </table>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  /* Jinja2가 SSR 시 유저명을 삽입 */
+  const USERNAME = "{{ username|e }}".trim();
+  console.log('템플릿에서 받은 사용자명:', USERNAME);
+  
+  /* 문서 로드 완료 후 실행 보장 */
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM 완전히 로드됨');
+    
+    // 로그아웃 버튼 이벤트 핸들러 직접 등록
+    const logoutBtn = document.getElementById("logoutBtn");
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", function() {
+        console.log("로그아웃 처리 중...");
+        
+        // 로컬 스토리지 토큰 삭제
+        localStorage.removeItem('access_token');
+        
+        // 모든 쿠키 삭제
+        document.cookie.split(";").forEach(function(c) {
+          document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+        
+        console.log("로그아웃 완료, 로그인 페이지로 이동");
+        location.href = "/login";
+      });
+    }
+    
+    /* 토큰을 서버로 전송하기 위한 설정 */
+    function setupAuth() {
+      console.log('인증 설정 시작');
+      // 토큰이 없으면 로그인 페이지로 리다이렉트
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        console.log('토큰 없음, 로그인 페이지로 이동');
+        location.href = "/login";
+        return false;
+      }
+      
+      console.log('토큰 발견:', token.substring(0, 10) + '...');
+      
+      // 토큰 쿠키에도 저장 (백엔드에서 사용자 정보 추출에 사용)
+      document.cookie = `access_token=${token}; path=/; max-age=86400; SameSite=Strict`;
+      
+      // 모든 요청에 Authorization 헤더 추가
+      const originalFetch = window.fetch;
+      window.fetch = function(url, options = {}) {
+        // 헤더 설정
+        options.headers = options.headers || {};
+        options.headers['Authorization'] = `Bearer ${token}`;
+        
+        return originalFetch(url, options);
+      };
+
+      return true;
+    }
+    
+    // 인증 설정이 성공하면 메인 스크립트 로드
+    if (setupAuth()) {
+      console.log('인증 설정 완료, 메인 스크립트 로드');
+      // 메인 스크립트 로드
+      const script = document.createElement('script');
+      script.src = "{{ url_for('static', path='js/dashboard.js') }}";
+      script.onerror = function() {
+        console.error('스크립트 로드 실패');
+        alert('대시보드 스크립트를 로드하지 못했습니다. 페이지를 새로고침 해주세요.');
+      };
+      document.body.appendChild(script);
+    }
+  });
+</script>
+{% endblock %}

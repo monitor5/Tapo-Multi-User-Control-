@@ -1,0 +1,37 @@
+# FastAPI + Uvicorn ASGI server
+fastapi==0.115.12
+uvicorn==0.24.0
+
+# Environment & settings
+python-dotenv==1.0.0
+pydantic==2.11.3
+pydantic-settings==2.7.0
+
+# Tapo P100/P105/P110 control library
+# Source: https://github.com/petretiandrea/plugp100
+plugp100==5.1.4
+
+
+
+# JWT handling (ensure cryptography backend for performance)
+python-jose[cryptography]==3.4.0
+
+# SQL framework
+
+SQLAlchemy==2.0.40
+
+# Password hashing
+passlib==1.7.4
+bcrypt==3.2.2
+
+# Multipart form parsing for OAuth2PasswordRequestForm
+python-multipart==0.0.18
+
+# Testing tools
+pytest==8.3.5
+httpx==0.25.1
+
+# WSGI server
+gunicorn==22.0.0
+#frontend
+jinja2>=3.0.0
