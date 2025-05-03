@@ -24,18 +24,8 @@ TP-Link **Tapo 스마트 플러그**를 원격으로 제어해 워크스테이�
 ## 2 | 논리 아키텍처
 
 ```
+![ChatGPT Image 2025년 5월 3일 오후 05_00_05](https://github.com/user-attachments/assets/d84c3394-25af-4b33-b125-3a40cf6ea7aa)
 
-┌─ Browser ─┐  HTTP (port 82)  ┌─────────┐
-│  사용자   │ ───────────────▶ │  nginx  │
-└───────────┘                  └──┬──────┘
-│ proxy\_pass
-▼
-┌────────────────────┐
-│ FastAPI (uvicorn)  │ 5004/tcp
-└────────────────────┘
-│ LAN
-▼
-Tapo P100 Smart Plug
 
 ````
 > 현재 컨테이너는 **uvicorn 단독** 구동입니다.  
