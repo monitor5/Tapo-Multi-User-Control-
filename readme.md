@@ -1,46 +1,82 @@
-
 # Tapo-Control 사용자 매뉴얼
 > **버전** 0.2 (2025-05-02)  
 > **대상** DevOps · 내부 사용자
 
 ---
 
-## 1 | 개요
-TP-Link **Tapo 스마트 플러그**를 원격으로 제어해 워크스테이션 전원을 관리하는 **경량 FastAPI** 애플리케이션입니다.
+## 목차
+1. [개요](#1-개요)  
+2. [논리 아키텍처](#2-논리-아키텍처)  
+3. [인프라 아키텍처](#3-인프라-아키텍처)  
+4. [사전 요구 사항](#4-사전-요구-사항)  
+5. [빠른 시작 (⏱ 3 분)](#5-빠른-시작-⏱-3-분)  
+6. [핵심 환경 변수 (.env)](#6-핵심-환경-변수-env)  
+7. [프로젝트 구조](#7-프로젝트-구조)  
+8. [관리자 계정 추가](#8-관리자-계정-추가)  
+9. [주요 API](#9-주요-API)  
+10. [문제 해결 FAQ](#10-문제-해결-FAQ)  
+11. [로드맵 (발췌)](#11-로드맵-발췌)  
 
-| 핵심 기능 | 비고 |
-|-----------|------|
-| JWT 로그인 / 토큰 발급 | bcrypt 해시 기반 |
-| 플러그 On · Off · Status REST API | `PyP100` 라이브러리 |
-| SSR 웹 UI | Jinja2 + Bootstrap 5 |
-| CI 테스트 | `pytest` |
-| 컨테이너 배포 | **Docker Compose** |
+---
+
+## 1 | 개요
+TP-Link **Tapo 스마트 플러그**를 원격으로 제어해 워크스테이션 전원을 관리하는 **경량 FastAPI** 애플리케이션입니다.  
+제어 라이브러리로는 [`plugp100`](https://github.com/petretiandrea/plugp100)를 사용합니다.
+
+| 핵심 기능                          | 비고                                     |
+|----------------------------------|----------------------------------------|
+| JWT 로그인 / 토큰 발급               | bcrypt 해시 기반                          |
+| 플러그 On · Off · Status REST API  | `plugp100` 라이브러리                    |
+| SSR 웹 UI                         | Jinja2 + Bootstrap 5                   |
+| CI 테스트                         | `pytest`                               |
+| 컨테이너 배포                      | **Docker Compose**                     |
 
 ---
 
 ## 2 | 논리 아키텍처
-
-
-![ChatGPT Image 2025년 5월 3일 오후 05_00_05](https://github.com/user-attachments/assets/d84c3394-25af-4b33-b125-3a40cf6ea7aa)
-
-
-
+![ChatGPT Image 2025년 5월 3일 오후 08_39_13](https://github.com/user-attachments/assets/a5d23fbd-857f-40f4-a843-efccfa6c94cd)
 > 현재 컨테이너는 **uvicorn 단독** 구동입니다.  
 > Gunicorn workers 전환은 로드맵 Sprint 4 항목입니다.
 
 ---
 
-## 3 | 사전 요구 사항
+## 3 | 인프라 아키텍처
 
-| 항목 | 최소 버전 |
-|------|-----------|
-| **Docker** | 20.10+ |
-| **docker-compose** | 2.20+ |
-| (개발) **Python** | 3.12 |
+- **호스팅 환경**  
+  - 베어메탈 또는 가상머신(VM) 상 Docker 환경  
+  - Kubernetes 클러스터(선택 항목)  
+- **네트워크 구성**  
+  - 내부망: `82/TCP` 포트로 Nginx → FastAPI  
+  - 방화벽: 80, 443, 5000–5005, 8000, 8080 허용  
+  - VPN 또는 VPC 내 배포 권장  
+- **확장성**  
+  - Docker Compose → Kubernetes로 전환 시 Horizontal Pod Autoscaling 적용 가능  
+  - Gunicorn worker 다중화로 동시 처리량 증가  
+- **보안 & 인증**  
+  - JWT 기반 인증  
+  - Nginx에서 TLS 종료(HTTPS)  
+  - 내부망 전용 통신, 외부 접근 시 VPN/IP 화이트리스트  
+- **모니터링 & 로깅**  
+  - Prometheus + Grafana 연동 (메트릭 수집)  
+  - ELK 스택(Elasticsearch, Logstash, Kibana) 또는 Fluentd 로깅 집계  
+  - Docker 로그 → 중앙집중형 로깅 서버 전송  
+- **CI/CD 파이프라인**  
+  - GitHub Actions 또는 GitLab CI  
+  - 이미지 빌드 → Vulnerability 스캔 → Staging/Production 자동 배포  
 
 ---
 
-## 4 | 빠른 시작 (⏱ 3 분)
+## 4 | 사전 요구 사항
+
+| 항목                 | 최소 버전     |
+|---------------------|-------------|
+| **Docker**          | 20.10+      |
+| **docker-compose**  | 2.20+       |
+| (개발) **Python**    | 3.12        |
+
+---
+
+## 5 | 빠른 시작 (⏱ 3 분)
 
 ```bash
 git clone https://github.com/your-org/tapo-control.git
@@ -60,7 +96,7 @@ open http://localhost:82/docs     # Swagger
 
 ---
 
-## 5 | 핵심 환경 변수 (.env)
+## 6 | 핵심 환경 변수 (.env)
 
 | 변수                    | 설명                       | 예시                  |
 | --------------------- | ------------------------ | ------------------- |
@@ -75,7 +111,7 @@ open http://localhost:82/docs     # Swagger
 
 ---
 
-## 6 | 프로젝트 구조
+## 7 | 프로젝트 구조
 
 ```
 tapo-control/
@@ -111,7 +147,7 @@ tapo-control/
 
 ---
 
-## 7 | 관리자 계정 추가
+## 8 | 관리자 계정 추가
 
 ```bash
 docker compose exec web python /app/create_user.py
@@ -122,19 +158,19 @@ docker compose exec web python /app/create_user.py
 
 ---
 
-## 8 | 주요 API
+## 9 | 주요 API
 
-| 메서드    | 엔드포인트                      | 설명     |
-| ------ | -------------------------- | ------ |
-| `GET`  | `/healthz`                 | 헬스 체크  |
-| `POST` | `/auth/login`              | JWT 발급 |
-| `GET`  | `/plugs/`                  | 플러그 목록 |
-| `POST` | `/plugs/{name}/on` / `off` | 전원 제어  |
-| `GET`  | `/plugs/{name}/status`     | 상태 조회  |
+| 메서드    | 엔드포인트                       | 설명     |
+| ------ | --------------------------- | ------ |
+| `GET`  | `/healthz`                  | 헬스 체크  |
+| `POST` | `/auth/login`               | JWT 발급 |
+| `GET`  | `/plugs/`                   | 플러그 목록 |
+| `POST` | `/plugs/{name}/on` / `/off` | 전원 제어  |
+| `GET`  | `/plugs/{name}/status`      | 상태 조회  |
 
 ---
 
-## 9 | 문제 해결 FAQ
+## 10 | 문제 해결 FAQ
 
 | 증상                        | 조치                                   |
 | ------------------------- | ------------------------------------ |
@@ -152,7 +188,7 @@ docker compose logs -f nginx  # proxy
 
 ---
 
-## 10 | 로드맵 (발췌)
+## 11 | 로드맵 (발췌)
 
 | Sprint | 주요 항목                             | 상태     |
 | ------ | --------------------------------- | ------ |
@@ -161,4 +197,3 @@ docker compose logs -f nginx  # proxy
 | 4      | HTTPS, Gunicorn workers, RBAC 고도화 | 계획     |
 
 ```
-
