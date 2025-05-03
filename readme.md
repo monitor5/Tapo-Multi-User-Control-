@@ -1,4 +1,4 @@
-# Tapo Control 시스템 사용자 매뉴얼 (Sprint 1 MVP)
+# Tapo Control 시스템 사용자 매뉴얼 
 
 > **버전** 0.2 – 2025-05-02  
 > **대상** : DevOps · 내부 유저.
