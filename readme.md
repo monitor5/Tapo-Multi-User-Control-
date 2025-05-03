@@ -1,7 +1,4 @@
-몇 초 동안 생각함
 
-
-```markdown
 # Tapo-Control 사용자 매뉴얼
 > **버전** 0.2 (2025-05-02)  
 > **대상** DevOps · 내부 사용자
@@ -23,11 +20,11 @@ TP-Link **Tapo 스마트 플러그**를 원격으로 제어해 워크스테이�
 
 ## 2 | 논리 아키텍처
 
-```
+
 ![ChatGPT Image 2025년 5월 3일 오후 05_00_05](https://github.com/user-attachments/assets/d84c3394-25af-4b33-b125-3a40cf6ea7aa)
 
 
-````
+
 > 현재 컨테이너는 **uvicorn 단독** 구동입니다.  
 > Gunicorn workers 전환은 로드맵 Sprint 4 항목입니다.
 
@@ -164,4 +161,4 @@ docker compose logs -f nginx  # proxy
 | 4      | HTTPS, Gunicorn workers, RBAC 고도화 | 계획     |
 
 ```
-```
+
